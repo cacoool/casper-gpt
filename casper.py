@@ -14,40 +14,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.units import mm
 
 
-def create_toc(scenarios):
-    toc = TableOfContents()
-    toc.levelStyles = [
-        ParagraphStyle(fontName='Helvetica-Bold', fontSize=14, name='TOCHeading1', leftIndent=20, firstLineIndent=-20,
-                       spaceBefore=5, leading=16),
-    ]
-    return toc
-
-
-def create_summary_table(scenarios):
-    data = [["Scenario", "Summary"]]
-    for i, scenario in enumerate(scenarios, 1):
-        summary = scenario['Scenario'][:100] + "..." if len(scenario['Scenario']) > 100 else scenario['Scenario']
-        data.append([f"Scenario {i}", Paragraph(summary, ParagraphStyle('Summary', fontName='Helvetica', fontSize=10))])
-
-    table = Table(data, colWidths=[100, 400])
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-    ]))
-    return table
-
-
 def create_pdf(scenarios, filename):
     doc = SimpleDocTemplate(filename, pagesize=letter,
                             rightMargin=72, leftMargin=72,
@@ -57,26 +23,12 @@ def create_pdf(scenarios, filename):
     styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
 
-    # Add title
-    Story.append(Paragraph("Casper Test Responses", styles['Title']))
-    Story.append(Spacer(1, 12))
-
-    # Add table of contents
-    toc = create_toc(scenarios)
-    Story.append(toc)
-    Story.append(PageBreak())
-
-    # Add summary table
-    Story.append(Paragraph("Scenario Summaries", styles['Heading1']))
-    Story.append(Spacer(1, 12))
-    Story.append(create_summary_table(scenarios))
-    Story.append(PageBreak())
-
     for i, scenario in tqdm(enumerate(scenarios, 1), total=len(scenarios)):
-        # Add bookmark for TOC
-        scenario_title = f"Scenario {i}: {scenario['Scenario'][:50]}..."
-        Story.append(Paragraph(scenario_title, styles['Heading1']))
+        Story.append(Paragraph(f"Scenario {i}", styles['Heading1']))
         Story.append(Spacer(1, 12))
+
+        Story.append(Paragraph(scenario['Scenario'], styles['Heading1']))
+        Story.append(Spacer(1, 6))
 
         for j in range(1, 4):
             question = scenario[f'Question {j}']
